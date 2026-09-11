@@ -17,7 +17,8 @@ root into vocalic **patterns/templates** (binyanim). This tool lets you:
   applied to the root `k-t-b` → **maktab**. Repeat a digit to geminate
   (`1a22a3` → *kattab*). The highest slot a template uses is its **arity**, so
   a biconsonantal (2), triconsonantal (3) or quadriconsonantal (4) template is
-  tagged accordingly.
+  tagged accordingly. A long list of patterns can also be **imported in bulk
+  from JSON** — see [Importing patterns](#importing-patterns).
 - **Generate & assign** — type a root's consonants (`ktb`, `k-t-b`, or `k t b`)
   and every viable combination pops out like an Arabic dictionary. Only patterns
   whose arity matches the root's length are offered, so a 2-letter root shows
@@ -26,6 +27,40 @@ root into vocalic **patterns/templates** (binyanim). This tool lets you:
   e.g. `maktab` → "사무실 / office".
 - **Look up by root** — later, enter just the root consonants to see every saved
   form and its meaning(s).
+
+## Importing patterns
+
+Rather than adding patterns one at a time, you can import a long list at once
+from a **JSON** file on the **Patterns** tab (the *Bulk import (JSON)* panel).
+Either choose a `.json` file or paste JSON directly, then click **Import
+patterns**. Click **Download template** to grab a starter file, or copy
+[`examples/patterns.template.json`](examples/patterns.template.json).
+
+The document is either a bare array of patterns or an object with a `patterns`
+array:
+
+```json
+{
+  "patterns": [
+    { "name": "noun of place", "template": "ma12a3", "category": "noun", "notes": "k-t-b -> maktab" },
+    { "name": "verbal noun", "template": "1i2aa3" },
+    { "name": "biconsonantal noun", "template": "1a2" }
+  ]
+}
+```
+
+Each entry supports:
+
+| Field      | Required | Description                                                        |
+| ---------- | -------- | ------------------------------------------------------------------ |
+| `name`     | yes      | Human-friendly label, e.g. `noun of place`.                        |
+| `template` | yes      | Digits `1`–`9` are root slots; any other character is a literal.   |
+| `category` | no       | e.g. `noun`, `verb`.                                               |
+| `notes`    | no       | Free-form usage notes.                                             |
+| `arity`    | no       | Overrides the arity derived from the template (the highest slot).  |
+
+Rows that are missing a name/template or reference no root slot are skipped and
+reported; the remaining valid rows are still imported.
 
 ## Data storage
 
@@ -67,14 +102,16 @@ npm run build      # production build
 src/
   lib/
     patterns.js        # pure root/pattern generation logic (tested)
+    patternImport.js   # pure JSON bulk-import parser/validator (tested)
     db.js              # data layer: Supabase or localStorage backend
     supabaseClient.js  # Supabase client + config detection
   components/
     PhonologySettings.jsx
-    PatternManager.jsx
+    PatternManager.jsx # add/edit patterns + bulk import from JSON
     RootGenerator.jsx  # enter root → viable forms → assign meanings
     RootLookup.jsx     # enter root → saved meanings
   App.jsx
+examples/patterns.template.json   # starter file for bulk import
 supabase/migrations/0001_init.sql
 supabase/migrations/0002_pattern_arity.sql
 ```
