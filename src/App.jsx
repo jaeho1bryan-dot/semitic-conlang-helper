@@ -95,6 +95,7 @@ export default function App() {
           {tab === 'lookup' && (
             <RootLookup
               entries={entries}
+              patterns={patterns}
               settings={settings}
               onChanged={reloadEntries}
             />

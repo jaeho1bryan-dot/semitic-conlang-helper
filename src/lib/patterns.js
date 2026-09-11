@@ -150,7 +150,7 @@ export function applyPattern(template, root) {
  *
  * @param {string[]} root
  * @param {Array<{id?: string|number, template: string, name?: string, arity?: number}>} patterns
- * @returns {Array<{patternId: string|number|undefined, name: string|undefined, template: string, surface: string}>}
+ * @returns {Array<{patternId: string|number|undefined, name: string|undefined, template: string, notes: string|null, category: string|null, surface: string}>}
  */
 export function generateForms(root, patterns) {
   const results = []
@@ -163,6 +163,8 @@ export function generateForms(root, patterns) {
       patternId: pattern.id,
       name: pattern.name,
       template: pattern.template,
+      notes: pattern.notes ?? null,
+      category: pattern.category ?? null,
       surface: applyPattern(pattern.template, root),
     })
   }
