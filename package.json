@@ -1,0 +1,27 @@
+{
+  "name": "semitic-conlang-helper",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "A Semitic-style conlang helper: define vocalic patterns (binyanim), generate viable root+pattern combinations, and assign & look up meanings by triconsonantal root.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.4.8",
+    "@testing-library/react": "^16.0.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "jsdom": "^25.0.0",
+    "vite": "^6.4.3",
+    "vitest": "^4.1.11"
+  }
+}

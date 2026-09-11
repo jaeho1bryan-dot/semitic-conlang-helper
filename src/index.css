@@ -1,0 +1,236 @@
+:root {
+  --bg: #0f1220;
+  --panel: #191d33;
+  --panel-2: #21263f;
+  --text: #e7e9f3;
+  --muted: #9aa0bd;
+  --accent: #7c9cff;
+  --accent-2: #57d9a3;
+  --danger: #ff6b6b;
+  --border: #2c3252;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR",
+    sans-serif;
+  line-height: 1.5;
+}
+
+.app {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+}
+
+header h1 {
+  margin: 0 0 4px;
+  font-size: 1.6rem;
+}
+
+header p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.badge {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.badge.online {
+  color: var(--accent-2);
+  border-color: var(--accent-2);
+}
+
+nav.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 20px 0;
+}
+
+nav.tabs button {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+nav.tabs button.active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 18px;
+}
+
+.panel h2 {
+  margin-top: 0;
+  font-size: 1.15rem;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 9px 11px;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+textarea {
+  min-height: 60px;
+  resize: vertical;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.row > .field {
+  flex: 1 1 160px;
+}
+
+.field {
+  margin-bottom: 12px;
+}
+
+button.btn {
+  background: var(--accent);
+  border: none;
+  color: #10132a;
+  font-weight: 600;
+  padding: 9px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+button.btn.secondary {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+button.btn.danger {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  padding: 4px 10px;
+  font-weight: 500;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+th {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.surface {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--accent-2);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px 10px;
+  margin: 3px;
+  font-size: 0.85rem;
+}
+
+.chip button {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 6px 0;
+}
+
+.error {
+  color: var(--danger);
+  font-size: 0.9rem;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.gloss-cell {
+  min-width: 160px;
+}
+
+.inline-form {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.grow {
+  flex: 1 1 auto;
+}
