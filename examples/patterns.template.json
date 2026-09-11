@@ -1,0 +1,40 @@
+{
+  "patterns": [
+    {
+      "name": "noun of place",
+      "template": "ma12a3",
+      "category": "noun",
+      "notes": "maCCaC — place where the root action happens (k-t-b -> maktab, 'office')."
+    },
+    {
+      "name": "verbal noun",
+      "template": "1i2aa3",
+      "category": "noun",
+      "notes": "CiCaaC — abstract/verbal noun (k-t-b -> kitaab, 'book')."
+    },
+    {
+      "name": "active participle",
+      "template": "1aa2i3",
+      "category": "adjective",
+      "notes": "CaaCiC — one who does the action (k-t-b -> kaatib, 'writer')."
+    },
+    {
+      "name": "intensive verb",
+      "template": "1a22a3",
+      "category": "verb",
+      "notes": "Geminates the middle radical (k-t-b -> kattab)."
+    },
+    {
+      "name": "biconsonantal noun",
+      "template": "1a2",
+      "category": "noun",
+      "notes": "CaC — a simple two-consonant root (arity 2)."
+    },
+    {
+      "name": "quadriliteral verb",
+      "template": "1a2a3a4",
+      "category": "verb",
+      "notes": "CaCaCaC — four-consonant root (arity 4). Set 'arity' to override the value derived from the template."
+    }
+  ]
+}

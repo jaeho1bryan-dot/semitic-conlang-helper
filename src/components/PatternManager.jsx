@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { db } from '../lib/db.js'
 import {
   applyPattern,
@@ -7,6 +7,33 @@ import {
   patternArity,
   arityLabel,
 } from '../lib/patterns.js'
+import { parsePatternsJson } from '../lib/patternImport.js'
+
+// A ready-to-edit template offered as a download from the import panel. Keeping
+// it in sync with examples/patterns.template.json.
+const TEMPLATE_JSON = `{
+  "patterns": [
+    {
+      "name": "noun of place",
+      "template": "ma12a3",
+      "category": "noun",
+      "notes": "maCCaC — place where the root action happens (k-t-b -> maktab)."
+    },
+    {
+      "name": "verbal noun",
+      "template": "1i2aa3",
+      "category": "noun",
+      "notes": "CiCaaC — abstract/verbal noun (k-t-b -> kitaab)."
+    },
+    {
+      "name": "biconsonantal noun",
+      "template": "1a2",
+      "category": "noun",
+      "notes": "CaC — a simple two-consonant root (arity 2)."
+    }
+  ]
+}
+`
 
 const SAMPLE_RADICALS = ['k', 't', 'b', 'r', 'l']
 
@@ -35,6 +62,11 @@ export default function PatternManager({ patterns, onChanged }) {
   const [form, setForm] = useState(EMPTY)
   const [editingId, setEditingId] = useState(null)
   const [error, setError] = useState('')
+  const [importText, setImportText] = useState('')
+  const [importErrors, setImportErrors] = useState([])
+  const [importStatus, setImportStatus] = useState('')
+  const [importing, setImporting] = useState(false)
+  const fileInputRef = useRef(null)
 
   function set(field, value) {
     setForm((f) => ({ ...f, [field]: value }))
@@ -97,6 +129,62 @@ export default function PatternManager({ patterns, onChanged }) {
     } catch (err) {
       setError(err.message || String(err))
     }
+  }
+
+  function onFile(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => setImportText(String(reader.result ?? ''))
+    reader.onerror = () => setImportErrors(['Could not read the selected file.'])
+    reader.readAsText(file)
+  }
+
+  async function runImport() {
+    setImportErrors([])
+    setImportStatus('')
+    const { patterns: parsed, errors } = parsePatternsJson(importText)
+    if (parsed.length === 0) {
+      setImportErrors(errors.length ? errors : ['No valid patterns to import.'])
+      return
+    }
+    setImporting(true)
+    let created = 0
+    const failures = [...errors]
+    try {
+      for (const p of parsed) {
+        try {
+          await db.createPattern(p)
+          created += 1
+        } catch (err) {
+          failures.push(`${p.name}: ${err.message || String(err)}`)
+        }
+      }
+      setImportStatus(
+        `Imported ${created} pattern${created === 1 ? '' : 's'}.` +
+          (failures.length ? ` ${failures.length} skipped.` : ''),
+      )
+      setImportErrors(failures)
+      if (created > 0) {
+        setImportText('')
+        if (fileInputRef.current) fileInputRef.current.value = ''
+        onChanged?.()
+      }
+    } finally {
+      setImporting(false)
+    }
+  }
+
+  function downloadTemplate() {
+    const blob = new Blob([TEMPLATE_JSON], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'patterns.template.json'
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
   }
 
   return (
@@ -169,6 +257,60 @@ export default function PatternManager({ patterns, onChanged }) {
           </button>
         )}
       </form>
+
+      <div className="import" style={{ marginTop: 18 }}>
+        <h3>Bulk import (JSON)</h3>
+        <p className="hint">
+          Import a long list of vowel/conjugation patterns at once. Provide a
+          JSON array of patterns, or an object with a <code>patterns</code> array.
+          Each entry needs a <code>name</code> and a <code>template</code>;{' '}
+          <code>category</code>, <code>notes</code> and <code>arity</code> are
+          optional.{' '}
+          <button
+            type="button"
+            className="btn secondary"
+            onClick={downloadTemplate}
+          >
+            Download template
+          </button>
+        </p>
+        <div className="field">
+          <label>Choose a JSON file</label>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json,application/json"
+            onChange={onFile}
+            aria-label="pattern JSON file"
+          />
+        </div>
+        <div className="field">
+          <label>…or paste JSON</label>
+          <textarea
+            value={importText}
+            onChange={(e) => setImportText(e.target.value)}
+            placeholder='{ "patterns": [ { "name": "noun of place", "template": "ma12a3" } ] }'
+            rows={6}
+            aria-label="pattern JSON"
+          />
+        </div>
+        {importStatus && <p className="hint">{importStatus}</p>}
+        {importErrors.length > 0 && (
+          <ul className="error">
+            {importErrors.map((msg, i) => (
+              <li key={i}>{msg}</li>
+            ))}
+          </ul>
+        )}
+        <button
+          className="btn"
+          type="button"
+          onClick={runImport}
+          disabled={importing || !importText.trim()}
+        >
+          {importing ? 'Importing…' : 'Import patterns'}
+        </button>
+      </div>
 
       <table style={{ marginTop: 18 }}>
         <thead>
