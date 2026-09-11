@@ -94,4 +94,81 @@ describe('RootGenerator', () => {
       gloss: '사무실',
     })
   })
+
+  it('shows a pattern note next to a generated form', () => {
+    const withNotes = [
+      { id: 'p1', name: 'noun of place', template: 'ma12a3', notes: 'place where the action happens' },
+    ]
+    render(
+      <RootGenerator
+        patterns={withNotes}
+        settings={settings}
+        entries={[]}
+        onEntryAdded={() => {}}
+      />,
+    )
+    fireEvent.change(screen.getByPlaceholderText('e.g. ktb'), {
+      target: { value: 'ktb' },
+    })
+    expect(
+      screen.getByText('place where the action happens'),
+    ).toBeInTheDocument()
+  })
+
+  it('edits a previously saved meaning', async () => {
+    const onEntryAdded = vi.fn()
+    const existing = {
+      id: 'e1',
+      root_key: 'k-t-b',
+      surface: 'maktab',
+      pattern_id: 'p1',
+      pattern_name: 'noun of place',
+      gloss: '사무실',
+      language: 'ko',
+    }
+    render(
+      <RootGenerator
+        patterns={patterns}
+        settings={settings}
+        entries={[existing]}
+        onEntryAdded={onEntryAdded}
+      />,
+    )
+    fireEvent.change(screen.getByPlaceholderText('e.g. ktb'), {
+      target: { value: 'ktb' },
+    })
+    fireEvent.click(screen.getByLabelText('edit 사무실'))
+    fireEvent.change(screen.getByLabelText('edit meaning 사무실'), {
+      target: { value: '도서관' },
+    })
+    fireEvent.click(screen.getAllByText('Save')[0])
+    await waitFor(() => expect(onEntryAdded).toHaveBeenCalled())
+  })
+
+  it('deletes a previously saved meaning', async () => {
+    const onEntryAdded = vi.fn()
+    await db.createEntry({
+      root_key: 'k-t-b',
+      surface: 'maktab',
+      pattern_id: 'p1',
+      pattern_name: 'noun of place',
+      gloss: '사무실',
+      language: 'ko',
+    })
+    const [existing] = await db.listEntries()
+    render(
+      <RootGenerator
+        patterns={patterns}
+        settings={settings}
+        entries={[existing]}
+        onEntryAdded={onEntryAdded}
+      />,
+    )
+    fireEvent.change(screen.getByPlaceholderText('e.g. ktb'), {
+      target: { value: 'ktb' },
+    })
+    fireEvent.click(screen.getByLabelText('delete 사무실'))
+    await waitFor(() => expect(onEntryAdded).toHaveBeenCalled())
+    expect(await db.listEntries()).toHaveLength(0)
+  })
 })

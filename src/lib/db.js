@@ -83,6 +83,14 @@ const localBackend = {
     lsWrite(LS_KEYS.entries, rows)
     return row
   },
+  async updateEntry(id, patch) {
+    const rows = lsRead(LS_KEYS.entries, [])
+    const idx = rows.findIndex((r) => r.id === id)
+    if (idx === -1) return null
+    rows[idx] = { ...rows[idx], ...patch }
+    lsWrite(LS_KEYS.entries, rows)
+    return rows[idx]
+  },
   async deleteEntry(id) {
     lsWrite(
       LS_KEYS.entries,
@@ -152,6 +160,16 @@ const supabaseBackend = {
     const { data, error } = await supabase
       .from('entries')
       .insert(input)
+      .select()
+      .single()
+    throwOnError(error)
+    return data
+  },
+  async updateEntry(id, patch) {
+    const { data, error } = await supabase
+      .from('entries')
+      .update(patch)
+      .eq('id', id)
       .select()
       .single()
     throwOnError(error)

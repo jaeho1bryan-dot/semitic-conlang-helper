@@ -3,7 +3,7 @@ import { db } from '../lib/db.js'
 import { tokenizeRoot, rootKey } from '../lib/patterns.js'
 
 // Enter just the root consonants to see every stored meaning for that root.
-export default function RootLookup({ entries, settings, onChanged }) {
+export default function RootLookup({ entries, patterns, settings, onChanged }) {
   const [rootInput, setRootInput] = useState('')
   const [error, setError] = useState('')
 
@@ -13,6 +13,22 @@ export default function RootLookup({ entries, settings, onChanged }) {
     () => rootKey(tokenizeRoot(query, inventory)),
     [query, inventory],
   )
+
+  // Look up a pattern's notes by its id (falling back to its name) so meanings
+  // can show the usage note recorded for the pattern that produced them.
+  const noteFor = useMemo(() => {
+    const byId = new Map()
+    const byName = new Map()
+    for (const p of patterns ?? []) {
+      if (!p?.notes) continue
+      if (p.id != null) byId.set(p.id, p.notes)
+      if (p.name) byName.set(p.name, p.notes)
+    }
+    return (entry) =>
+      (entry.pattern_id != null && byId.get(entry.pattern_id)) ||
+      (entry.pattern_name && byName.get(entry.pattern_name)) ||
+      null
+  }, [patterns])
 
   const matches = useMemo(() => {
     if (!query) return entries ?? []
@@ -66,22 +82,28 @@ export default function RootLookup({ entries, settings, onChanged }) {
             </tr>
           </thead>
           <tbody>
-            {matches.map((e) => (
-              <tr key={e.id}>
-                <td className="muted">{e.root_key}</td>
-                <td className="surface">{e.surface}</td>
-                <td className="muted">{e.pattern_name || '—'}</td>
-                <td>
-                  {e.gloss}{' '}
-                  {e.language && <span className="muted">[{e.language}]</span>}
-                </td>
-                <td>
-                  <button className="btn danger" onClick={() => remove(e.id)}>
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {matches.map((e) => {
+              const note = noteFor(e)
+              return (
+                <tr key={e.id}>
+                  <td className="muted">{e.root_key}</td>
+                  <td className="surface">{e.surface}</td>
+                  <td className="muted">
+                    <div>{e.pattern_name || '—'}</div>
+                    {note && <div className="pattern-note">{note}</div>}
+                  </td>
+                  <td>
+                    {e.gloss}{' '}
+                    {e.language && <span className="muted">[{e.language}]</span>}
+                  </td>
+                  <td>
+                    <button className="btn danger" onClick={() => remove(e.id)}>
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       )}

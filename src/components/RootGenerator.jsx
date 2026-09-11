@@ -92,7 +92,7 @@ export default function RootGenerator({ patterns, settings, entries, onEntryAdde
                 rootKeyValue={key}
                 existing={existingBySurface.get(f.surface) ?? []}
                 onError={setError}
-                onEntryAdded={onEntryAdded}
+                onChanged={onEntryAdded}
               />
             ))}
           </tbody>
@@ -102,7 +102,7 @@ export default function RootGenerator({ patterns, settings, entries, onEntryAdde
   )
 }
 
-function FormRow({ form, root, rootKeyValue, existing, onError, onEntryAdded }) {
+function FormRow({ form, root, rootKeyValue, existing, onError, onChanged }) {
   const [gloss, setGloss] = useState('')
   const [language, setLanguage] = useState('ko')
   const [saving, setSaving] = useState(false)
@@ -124,7 +124,7 @@ function FormRow({ form, root, rootKeyValue, existing, onError, onEntryAdded }) 
         language,
       })
       setGloss('')
-      onEntryAdded?.()
+      onChanged?.()
     } catch (err) {
       onError(err.message || String(err))
     } finally {
@@ -138,17 +138,20 @@ function FormRow({ form, root, rootKeyValue, existing, onError, onEntryAdded }) 
       <td>
         <div>{form.name || <span className="muted">(unnamed)</span>}</div>
         <code className="muted">{form.template}</code>
+        {form.notes && <div className="pattern-note muted">{form.notes}</div>}
       </td>
       <td>
         {existing.length === 0 ? (
           <span className="muted">—</span>
         ) : (
-          <ul style={{ margin: 0, paddingLeft: 16 }}>
+          <ul className="meaning-list">
             {existing.map((e) => (
-              <li key={e.id}>
-                {e.gloss}{' '}
-                {e.language && <span className="muted">[{e.language}]</span>}
-              </li>
+              <ExistingMeaning
+                key={e.id}
+                entry={e}
+                onError={onError}
+                onChanged={onChanged}
+              />
             ))}
           </ul>
         )}
@@ -178,5 +181,108 @@ function FormRow({ form, root, rootKeyValue, existing, onError, onEntryAdded }) 
         </form>
       </td>
     </tr>
+  )
+}
+
+// A single saved meaning that can be edited in place or deleted.
+function ExistingMeaning({ entry, onError, onChanged }) {
+  const [editing, setEditing] = useState(false)
+  const [gloss, setGloss] = useState(entry.gloss ?? '')
+  const [language, setLanguage] = useState(entry.language ?? 'ko')
+  const [busy, setBusy] = useState(false)
+
+  function startEdit() {
+    setGloss(entry.gloss ?? '')
+    setLanguage(entry.language ?? 'ko')
+    setEditing(true)
+  }
+
+  async function save(e) {
+    e.preventDefault()
+    const value = gloss.trim()
+    if (!value) return
+    setBusy(true)
+    onError('')
+    try {
+      await db.updateEntry(entry.id, { gloss: value, language })
+      setEditing(false)
+      onChanged?.()
+    } catch (err) {
+      onError(err.message || String(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function remove() {
+    setBusy(true)
+    onError('')
+    try {
+      await db.deleteEntry(entry.id)
+      onChanged?.()
+    } catch (err) {
+      onError(err.message || String(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (editing) {
+    return (
+      <li>
+        <form className="inline-form" onSubmit={save}>
+          <div className="grow">
+            <input
+              value={gloss}
+              onChange={(e) => setGloss(e.target.value)}
+              aria-label={`edit meaning ${entry.gloss}`}
+            />
+          </div>
+          <select
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+            aria-label="language"
+            style={{ width: 'auto' }}
+          >
+            <option value="ko">KO</option>
+            <option value="en">EN</option>
+          </select>
+          <button className="btn secondary" type="submit" disabled={busy}>
+            Save
+          </button>{' '}
+          <button
+            className="btn secondary"
+            type="button"
+            onClick={() => setEditing(false)}
+            disabled={busy}
+          >
+            Cancel
+          </button>
+        </form>
+      </li>
+    )
+  }
+
+  return (
+    <li>
+      {entry.gloss}{' '}
+      {entry.language && <span className="muted">[{entry.language}]</span>}{' '}
+      <button
+        className="btn secondary"
+        onClick={startEdit}
+        disabled={busy}
+        aria-label={`edit ${entry.gloss}`}
+      >
+        Edit
+      </button>{' '}
+      <button
+        className="btn danger"
+        onClick={remove}
+        disabled={busy}
+        aria-label={`delete ${entry.gloss}`}
+      >
+        Delete
+      </button>
+    </li>
   )
 }

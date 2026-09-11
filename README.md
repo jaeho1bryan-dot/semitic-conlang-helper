@@ -23,10 +23,13 @@ root into vocalic **patterns/templates** (binyanim). This tool lets you:
   and every viable combination pops out like an Arabic dictionary. Only patterns
   whose arity matches the root's length are offered, so a 2-letter root shows
   biconsonantal patterns, a 3-letter root triconsonantal, and a 4-letter root
-  quadriconsonantal. Attach a meaning (Korean or English) to any surface form —
-  e.g. `maktab` → "사무실 / office".
+  quadriconsonantal. Each form also shows the note recorded for its pattern.
+  Attach a meaning (Korean or English) to any surface form — e.g. `maktab` →
+  "사무실 / office" — and **edit or delete** those saved meanings later, right
+  from the same screen.
 - **Look up by root** — later, enter just the root consonants to see every saved
-  form and its meaning(s).
+  form and its meaning(s), together with the note of the pattern that produced
+  each form.
 
 ## Importing patterns
 
