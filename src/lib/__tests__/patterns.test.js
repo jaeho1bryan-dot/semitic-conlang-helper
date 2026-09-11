@@ -6,6 +6,8 @@ import {
   applyPattern,
   generateForms,
   rootKey,
+  patternArity,
+  arityLabel,
 } from '../patterns.js'
 
 describe('tokenizeRoot', () => {
@@ -75,17 +77,72 @@ describe('applyPattern', () => {
   })
 })
 
+describe('patternArity', () => {
+  it('prefers a stored positive arity', () => {
+    expect(patternArity({ template: 'ma12a3', arity: 3 })).toBe(3)
+    // A stored value wins even if it disagrees with the template.
+    expect(patternArity({ template: 'ma12a3', arity: 4 })).toBe(4)
+  })
+
+  it('derives arity from the template when not stored', () => {
+    expect(patternArity({ template: 'ma12a3' })).toBe(3)
+    expect(patternArity({ template: '1a2' })).toBe(2)
+    expect(patternArity({ template: '1a2a3a4' })).toBe(4)
+  })
+
+  it('ignores non-positive or invalid stored arity', () => {
+    expect(patternArity({ template: '1a2a3a4', arity: 0 })).toBe(4)
+    expect(patternArity({ template: '1a2', arity: null })).toBe(2)
+  })
+
+  it('accepts a bare template string', () => {
+    expect(patternArity('ma12a3')).toBe(3)
+  })
+})
+
+describe('arityLabel', () => {
+  it('names the common Semitic arities', () => {
+    expect(arityLabel(2)).toBe('Biconsonantal')
+    expect(arityLabel(3)).toBe('Triconsonantal')
+    expect(arityLabel(4)).toBe('Quadriconsonantal')
+  })
+
+  it('falls back gracefully', () => {
+    expect(arityLabel(7)).toBe('7-consonantal')
+    expect(arityLabel(0)).toBe('—')
+  })
+})
+
 describe('generateForms', () => {
   const patterns = [
     { id: 1, name: 'noun of place', template: 'ma12a3' },
     { id: 2, name: 'verbal noun', template: '1i2aa3' },
     { id: 3, name: 'quadriliteral', template: '1a2a3a4' },
+    { id: 4, name: 'biconsonantal', template: '1a2' },
   ]
 
-  it('returns only viable forms for a triliteral root', () => {
+  it('returns only arity-matching forms for a triliteral root', () => {
     const forms = generateForms(['k', 't', 'b'], patterns)
     expect(forms.map((f) => f.surface)).toEqual(['maktab', 'kitaab'])
     expect(forms).toHaveLength(2)
+  })
+
+  it('returns only quadriconsonantal patterns for a 4-consonant root', () => {
+    const forms = generateForms(['d', 'ḥ', 'r', 'j'], patterns)
+    expect(forms.map((f) => f.template)).toEqual(['1a2a3a4'])
+    expect(forms[0].surface).toBe('daḥaraj')
+  })
+
+  it('returns only biconsonantal patterns for a 2-consonant root', () => {
+    const forms = generateForms(['q', 'm'], patterns)
+    expect(forms.map((f) => f.template)).toEqual(['1a2'])
+    expect(forms[0].surface).toBe('qam')
+  })
+
+  it('honours an explicit arity that overrides the template', () => {
+    // Stored arity 4 makes this template match only 4-consonant roots.
+    const custom = [{ id: 9, template: 'ma12a3', arity: 4 }]
+    expect(generateForms(['k', 't', 'b'], custom)).toHaveLength(0)
   })
 
   it('carries pattern metadata through', () => {

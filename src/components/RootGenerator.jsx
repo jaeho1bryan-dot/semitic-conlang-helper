@@ -36,8 +36,9 @@ export default function RootGenerator({ patterns, settings, entries, onEntryAdde
       <h2>Generate &amp; assign meanings</h2>
       <p className="hint">
         Type the root consonants (e.g. <code>ktb</code>, or <code>k-t-b</code>, or
-        <code> k t b</code>). Every viable combination from your patterns appears
-        below — assign a meaning to any of them.
+        <code> k t b</code>). Only patterns whose arity matches your root’s length
+        are shown — a 2-consonant root shows biconsonantal patterns, 3 shows
+        triconsonantal, 4 shows quadriconsonantal.
       </p>
 
       <div className="field">
@@ -69,7 +70,8 @@ export default function RootGenerator({ patterns, settings, entries, onEntryAdde
         </p>
       ) : forms.length === 0 ? (
         <p className="muted">
-          No pattern is viable for a {root.length}-consonant root.
+          No pattern of arity {root.length} is defined for a {root.length}-consonant
+          root. Add a matching pattern on the “Patterns” tab.
         </p>
       ) : (
         <table>
