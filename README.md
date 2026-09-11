@@ -15,10 +15,15 @@ root into vocalic **patterns/templates** (binyanim). This tool lets you:
 - **Define patterns** — a template uses digits `1`–`9` for the 1st–9th root
   consonant and any other character as a literal segment. Example: `ma12a3`
   applied to the root `k-t-b` → **maktab**. Repeat a digit to geminate
-  (`1a22a3` → *kattab*).
+  (`1a22a3` → *kattab*). The highest slot a template uses is its **arity**, so
+  a biconsonantal (2), triconsonantal (3) or quadriconsonantal (4) template is
+  tagged accordingly.
 - **Generate & assign** — type a root's consonants (`ktb`, `k-t-b`, or `k t b`)
-  and every viable combination pops out like an Arabic dictionary. Attach a
-  meaning (Korean or English) to any surface form — e.g. `maktab` → "사무실 / office".
+  and every viable combination pops out like an Arabic dictionary. Only patterns
+  whose arity matches the root's length are offered, so a 2-letter root shows
+  biconsonantal patterns, a 3-letter root triconsonantal, and a 4-letter root
+  quadriconsonantal. Attach a meaning (Korean or English) to any surface form —
+  e.g. `maktab` → "사무실 / office".
 - **Look up by root** — later, enter just the root consonants to see every saved
   form and its meaning(s).
 
@@ -71,4 +76,5 @@ src/
     RootLookup.jsx     # enter root → saved meanings
   App.jsx
 supabase/migrations/0001_init.sql
+supabase/migrations/0002_pattern_arity.sql
 ```

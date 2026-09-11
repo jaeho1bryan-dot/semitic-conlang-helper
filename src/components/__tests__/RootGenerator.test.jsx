@@ -8,8 +8,10 @@ import { db } from '../../lib/db.js'
 const patterns = [
   { id: 'p1', name: 'noun of place', template: 'ma12a3' },
   { id: 'p2', name: 'verbal noun', template: '1i2aa3' },
+  { id: 'p3', name: 'biconsonantal', template: '1a2' },
+  { id: 'p4', name: 'quadriliteral', template: '1a2a3a4' },
 ]
-const settings = { consonants: ['k', 't', 'b'], vowels: ['a', 'i'] }
+const settings = { consonants: ['k', 't', 'b', 'r'], vowels: ['a', 'i'] }
 
 beforeEach(() => {
   localStorage.clear()
@@ -30,6 +32,39 @@ describe('RootGenerator', () => {
     })
     expect(screen.getByText('maktab')).toBeInTheDocument()
     expect(screen.getByText('kitaab')).toBeInTheDocument()
+  })
+
+  it('only shows patterns whose arity matches the root length', () => {
+    render(
+      <RootGenerator
+        patterns={patterns}
+        settings={settings}
+        entries={[]}
+        onEntryAdded={() => {}}
+      />,
+    )
+    // A 3-consonant root: triconsonantal patterns only.
+    fireEvent.change(screen.getByPlaceholderText('e.g. ktb'), {
+      target: { value: 'ktb' },
+    })
+    expect(screen.getByText('maktab')).toBeInTheDocument()
+    // Biconsonantal (kt) and quadriliteral (ktbr) forms must not appear.
+    expect(screen.queryByText('kat')).not.toBeInTheDocument()
+    expect(screen.queryByText('katab')).not.toBeInTheDocument()
+
+    // A 2-consonant root: biconsonantal patterns only.
+    fireEvent.change(screen.getByPlaceholderText('e.g. ktb'), {
+      target: { value: 'kt' },
+    })
+    expect(screen.getByText('kat')).toBeInTheDocument()
+    expect(screen.queryByText('maktab')).not.toBeInTheDocument()
+
+    // A 4-consonant root: quadriconsonantal patterns only.
+    fireEvent.change(screen.getByPlaceholderText('e.g. ktb'), {
+      target: { value: 'ktbr' },
+    })
+    expect(screen.getByText('katabar')).toBeInTheDocument()
+    expect(screen.queryByText('maktab')).not.toBeInTheDocument()
   })
 
   it('saves a meaning for a generated form', async () => {

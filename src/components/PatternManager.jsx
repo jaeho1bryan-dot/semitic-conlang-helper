@@ -1,16 +1,32 @@
 import { useState } from 'react'
 import { db } from '../lib/db.js'
-import { applyPattern, isViable, requiredRootLength } from '../lib/patterns.js'
+import {
+  applyPattern,
+  isViable,
+  requiredRootLength,
+  patternArity,
+  arityLabel,
+} from '../lib/patterns.js'
 
-const SAMPLE_ROOT = ['k', 't', 'b']
+const SAMPLE_RADICALS = ['k', 't', 'b', 'r', 'l']
+
+function sampleRoot(arity) {
+  if (!arity || arity < 1) return SAMPLE_RADICALS.slice(0, 3)
+  return SAMPLE_RADICALS.slice(0, Math.min(arity, SAMPLE_RADICALS.length))
+}
 
 function preview(template) {
   try {
-    if (!isViable(template, SAMPLE_ROOT)) return '—'
-    return applyPattern(template, SAMPLE_ROOT)
+    const root = sampleRoot(requiredRootLength(template))
+    if (!isViable(template, root)) return '—'
+    return applyPattern(template, root)
   } catch {
     return '—'
   }
+}
+
+function sampleLabel(template) {
+  return sampleRoot(requiredRootLength(template)).join('-')
 }
 
 const EMPTY = { name: '', template: '', category: '', notes: '' }
@@ -56,6 +72,7 @@ export default function PatternManager({ patterns, onChanged }) {
     const payload = {
       name,
       template,
+      arity: requiredRootLength(template),
       category: form.category.trim() || null,
       notes: form.notes.trim() || null,
     }
@@ -89,7 +106,9 @@ export default function PatternManager({ patterns, onChanged }) {
         A template uses digits <code>1</code>–<code>9</code> for root consonants
         and any other character as a literal segment. Example: <code>ma12a3</code>{' '}
         applied to <code>k-t-b</code> → <strong>maktab</strong>. Repeat a digit to
-        geminate (e.g. <code>1a22a3</code> → kattab).
+        geminate (e.g. <code>1a22a3</code> → kattab). The highest slot sets the
+        pattern’s <strong>arity</strong> — a biconsonantal (2), triconsonantal (3)
+        or quadriconsonantal (4) template only matches a root of the same length.
       </p>
 
       <form onSubmit={submit}>
@@ -128,7 +147,17 @@ export default function PatternManager({ patterns, onChanged }) {
           />
         </div>
         <p className="hint">
-          Preview (k-t-b): <span className="surface">{preview(form.template)}</span>
+          Preview ({sampleLabel(form.template) || 'k-t-b'}):{' '}
+          <span className="surface">{preview(form.template)}</span>
+          {requiredRootLength(form.template) > 0 && (
+            <>
+              {' · '}
+              <span className="muted">
+                arity {requiredRootLength(form.template)} (
+                {arityLabel(requiredRootLength(form.template))})
+              </span>
+            </>
+          )}
         </p>
         {error && <p className="error">{error}</p>}
         <button className="btn" type="submit">
@@ -146,7 +175,8 @@ export default function PatternManager({ patterns, onChanged }) {
           <tr>
             <th>Name</th>
             <th>Template</th>
-            <th>k-t-b</th>
+            <th>Arity</th>
+            <th>Example</th>
             <th>Category</th>
             <th></th>
           </tr>
@@ -154,29 +184,37 @@ export default function PatternManager({ patterns, onChanged }) {
         <tbody>
           {patterns.length === 0 && (
             <tr>
-              <td colSpan={5} className="muted">
+              <td colSpan={6} className="muted">
                 No patterns yet. Add one above.
               </td>
             </tr>
           )}
-          {patterns.map((p) => (
-            <tr key={p.id}>
-              <td>{p.name}</td>
-              <td>
-                <code>{p.template}</code>
-              </td>
-              <td className="surface">{preview(p.template)}</td>
-              <td className="muted">{p.category || '—'}</td>
-              <td>
-                <button className="btn secondary" onClick={() => startEdit(p)}>
-                  Edit
-                </button>{' '}
-                <button className="btn danger" onClick={() => remove(p.id)}>
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
+          {patterns.map((p) => {
+            const arity = patternArity(p)
+            return (
+              <tr key={p.id}>
+                <td>{p.name}</td>
+                <td>
+                  <code>{p.template}</code>
+                </td>
+                <td className="muted">
+                  {arity > 0 ? `${arity} · ${arityLabel(arity)}` : '—'}
+                </td>
+                <td className="surface">
+                  {sampleLabel(p.template)} → {preview(p.template)}
+                </td>
+                <td className="muted">{p.category || '—'}</td>
+                <td>
+                  <button className="btn secondary" onClick={() => startEdit(p)}>
+                    Edit
+                  </button>{' '}
+                  <button className="btn danger" onClick={() => remove(p.id)}>
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
     </div>

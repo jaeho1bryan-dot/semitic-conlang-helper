@@ -67,6 +67,42 @@ export function requiredRootLength(template) {
 }
 
 /**
+ * The arity of a pattern: how many distinct root consonants it consumes.
+ *
+ * Prefers an explicitly stored `arity` (persisted alongside the pattern) and
+ * otherwise derives it from the template. A biconsonantal pattern has arity 2,
+ * triconsonantal 3, quadriconsonantal 4, and so on.
+ *
+ * @param {{template?: string, arity?: number|string|null}|string} pattern
+ * @returns {number}
+ */
+export function patternArity(pattern) {
+  if (pattern && typeof pattern === 'object') {
+    const stored = Number(pattern.arity)
+    if (Number.isInteger(stored) && stored > 0) return stored
+    return requiredRootLength(pattern.template ?? '')
+  }
+  return requiredRootLength(pattern ?? '')
+}
+
+/**
+ * A human-friendly name for a given arity (2 → Biconsonantal, …).
+ *
+ * @param {number} arity
+ * @returns {string}
+ */
+export function arityLabel(arity) {
+  const names = {
+    1: 'Uniconsonantal',
+    2: 'Biconsonantal',
+    3: 'Triconsonantal',
+    4: 'Quadriconsonantal',
+    5: 'Quinquiconsonantal',
+  }
+  return names[arity] || (arity > 0 ? `${arity}-consonantal` : '—')
+}
+
+/**
  * Whether a template can be realized by a root of the given length.
  *
  * @param {string} template
@@ -107,14 +143,21 @@ export function applyPattern(template, root) {
 /**
  * Generate every viable surface form for a root across the given patterns.
  *
+ * Only patterns whose arity matches the root's length are used: a
+ * biconsonantal (2), triconsonantal (3) or quadriconsonantal (4) root yields
+ * only patterns of the same arity. This mirrors how Semitic roots slot into
+ * templates of a matching consonant count.
+ *
  * @param {string[]} root
- * @param {Array<{id?: string|number, template: string, name?: string}>} patterns
+ * @param {Array<{id?: string|number, template: string, name?: string, arity?: number}>} patterns
  * @returns {Array<{patternId: string|number|undefined, name: string|undefined, template: string, surface: string}>}
  */
 export function generateForms(root, patterns) {
   const results = []
+  const rootLength = Array.isArray(root) ? root.length : 0
   for (const pattern of patterns ?? []) {
     if (!pattern || typeof pattern.template !== 'string') continue
+    if (patternArity(pattern) !== rootLength) continue
     if (!isViable(pattern.template, root)) continue
     results.push({
       patternId: pattern.id,
